@@ -22,7 +22,7 @@ class LocationController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $locations = $this->locationService->list($request->only(['search', 'province_id', 'per_page']));
+        $locations = $this->locationService->list($request->only(['search', 'per_page']));
 
         return LocationResource::collection($locations)
             ->additional(['success' => true, 'message' => 'Sucesso'])
@@ -37,12 +37,12 @@ class LocationController extends Controller
             return $this->duplicateNameError();
         }
 
-        return $this->created(new LocationResource($location), 'Local criado com sucesso.');
+        return $this->created(new LocationResource($location), 'Zona/bairro criada com sucesso.');
     }
 
     public function show(Location $location): JsonResponse
     {
-        return $this->success(new LocationResource($location->load('province')));
+        return $this->success(new LocationResource($location));
     }
 
     public function update(UpdateLocationRequest $request, Location $location): JsonResponse
@@ -53,7 +53,7 @@ class LocationController extends Controller
             return $this->duplicateNameError();
         }
 
-        return $this->success(new LocationResource($updated), 'Local actualizado com sucesso.');
+        return $this->success(new LocationResource($updated), 'Zona/bairro actualizada com sucesso.');
     }
 
     public function destroy(Location $location): JsonResponse
@@ -64,13 +64,13 @@ class LocationController extends Controller
             return $this->error($e->getMessage(), 422);
         }
 
-        return $this->success(message: 'Local eliminado com sucesso.');
+        return $this->success(message: 'Zona/bairro eliminada com sucesso.');
     }
 
     private function duplicateNameError(): JsonResponse
     {
-        return $this->error('Já existe um local com este nome nesta província.', 422, [
-            'name' => ['Já existe um local com este nome nesta província.'],
+        return $this->error('Já existe uma zona/bairro com este nome.', 422, [
+            'name' => ['Já existe uma zona/bairro com este nome.'],
         ]);
     }
 }

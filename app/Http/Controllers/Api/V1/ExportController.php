@@ -74,7 +74,7 @@ class ExportController extends Controller
     public function people(Request $request): BinaryFileResponse
     {
         $filters = array_filter(
-            $request->only(['search', 'type', 'gender', 'location_id', 'province_id', 'class_group_id']),
+            $request->only(['search', 'type', 'gender', 'location_id', 'class_group_id']),
             fn ($value) => filled($value)
         );
         $name = match ($filters['type'] ?? null) {

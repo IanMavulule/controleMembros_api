@@ -90,7 +90,7 @@ test('attendance export lists the people of a worship and honours filters', func
         expect($rows)->toHaveCount(1)
             ->and($rows[0][0])->toBe('Ana')
             ->and($rows[0][4])->toBe('Membro')
-            ->and($rows[0][6])->toBe($this->member->classGroup->name);
+            ->and($rows[0][5])->toBe($this->member->classGroup->name);
 
         return true;
     });
@@ -133,7 +133,7 @@ test('worker cannot export the attendance of a worship outside their programs', 
         ->assertForbidden();
 });
 
-test('people export filters by type and shows what is missing to become member', function () {
+test('people export filters by type without attendance or membership columns', function () {
     Excel::fake();
 
     $this->actingAs($this->worker, 'sanctum')->get(route('exports.people', ['type' => 'visitor']))->assertOk();
@@ -143,8 +143,8 @@ test('people export filters by type and shows what is missing to become member',
 
         expect($rows)->toHaveCount(1)
             ->and($rows[0][0])->toBe('Bruno')
-            ->and($rows[0][9])->toBe(1)
-            ->and($rows[0][10])->toBe(4);
+            ->and($rows[0][4])->toBe('Visitante')
+            ->and($export->headings())->toBe(['Nome', 'Apelido', 'Celular', 'Género', 'Tipo', 'Turma', 'Zona / bairro', 'Registado em']);
 
         return true;
     });

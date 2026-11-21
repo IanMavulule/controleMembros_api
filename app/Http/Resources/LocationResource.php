@@ -16,8 +16,7 @@ class LocationResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
-            'province_id' => $this->province_id,
-            'province' => new ProvinceResource($this->whenLoaded('province')),
+            'people_count' => $this->whenCounted('people'),
         ];
     }
 }

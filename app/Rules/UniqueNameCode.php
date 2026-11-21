@@ -16,8 +16,8 @@ class UniqueNameCode implements ValidationRule
     /**
      * @param  class-string<Model&HasUniqueNameCode>  $modelClass
      * @param  string  $label  Nome do recurso nas mensagens (ex.: "programa", "grupo", "província").
-     * @param  bool  $feminine  Usa "uma"/"da" nas mensagens (ex.: "Já existe uma província").
-     * @param  array<string, mixed>  $scope  Limita a unicidade (ex.: ['province_id' => 3] para locais).
+     * @param  bool  $feminine  Usa "uma"/"da" nas mensagens (ex.: "Já existe uma turma").
+     * @param  array<string, mixed>  $scope  Limita a unicidade.
      */
     public function __construct(
         private readonly string $modelClass,

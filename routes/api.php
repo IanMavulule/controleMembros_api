@@ -11,7 +11,6 @@ use App\Http\Controllers\Api\V1\GroupUserController;
 use App\Http\Controllers\Api\V1\LocationController;
 use App\Http\Controllers\Api\V1\PersonController;
 use App\Http\Controllers\Api\V1\ProgramController;
-use App\Http\Controllers\Api\V1\ProvinceController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UserGroupController;
 use App\Http\Controllers\Api\V1\WorshipController;
@@ -34,7 +33,6 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:5,1')
             ->name('auth.change-password');
 
-        Route::apiResource('provinces', ProvinceController::class)->only(['index', 'show']);
         Route::apiResource('locations', LocationController::class)->only(['index', 'show', 'store']);
         Route::apiResource('class-groups', ClassGroupController::class)->only(['index', 'show']);
         Route::apiResource('programs', ProgramController::class)->only(['index', 'show']);
@@ -65,7 +63,6 @@ Route::prefix('v1')->group(function () {
                 Route::get('worships/{worship}', [DashboardController::class, 'worship'])->name('worship');
             });
 
-            Route::apiResource('provinces', ProvinceController::class)->except(['index', 'show']);
             Route::apiResource('locations', LocationController::class)->only(['update', 'destroy']);
             Route::apiResource('class-groups', ClassGroupController::class)->except(['index', 'show']);
             Route::delete('people/{person}', [PersonController::class, 'destroy'])->name('people.destroy');

@@ -15,7 +15,7 @@ class PersonService
     use NormalizesPhone, SearchesFullName;
 
     /**
-     * @param  array{search?: string, type?: string, gender?: string, location_id?: int|string, province_id?: int|string, class_group_id?: int|string, per_page?: int|string}  $filters
+     * @param  array{search?: string, type?: string, gender?: string, location_id?: int|string, class_group_id?: int|string, has_phone?: bool|string, per_page?: int|string}  $filters
      */
     public function list(array $filters = []): LengthAwarePaginator
     {
@@ -25,13 +25,13 @@ class PersonService
     /**
      * Query partilhada pela listagem e pela exportação.
      *
-     * @param  array{search?: string, type?: string, gender?: string, location_id?: int|string, province_id?: int|string, class_group_id?: int|string}  $filters
+     * @param  array{search?: string, type?: string, gender?: string, location_id?: int|string, class_group_id?: int|string, has_phone?: bool|string}  $filters
      * @return Builder<Person>
      */
     public function filteredQuery(array $filters = []): Builder
     {
         return Person::query()
-            ->with(['location.province', 'classGroup'])
+            ->with(['location', 'classGroup'])
             ->withCount('worships')
             ->when(
                 filled($filters['search'] ?? null),
@@ -42,8 +42,8 @@ class PersonService
             ->when(isset($filters['location_id']), fn ($q) => $q->where('location_id', $filters['location_id']))
             ->when(isset($filters['class_group_id']), fn ($q) => $q->where('class_group_id', $filters['class_group_id']))
             ->when(
-                isset($filters['province_id']),
-                fn ($q) => $q->whereHas('location', fn ($l) => $l->where('province_id', $filters['province_id']))
+                filter_var($filters['has_phone'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                fn ($q) => $q->whereNotNull('phone')
             )
             ->orderBy('name')
             ->orderBy('surname');
@@ -78,7 +78,7 @@ class PersonService
     }
 
     /**
-     * @param  array{name: string, surname: string, gender: string, phone: string, class_group_id?: int|null, location_id?: int|null, type?: string}  $data
+     * @param  array{name: string, surname: string, gender: string, phone?: string|null, class_group_id?: int|null, location_id?: int|null, type?: string}  $data
      */
     public function create(array $data, User $creator): Person
     {
@@ -88,7 +88,7 @@ class PersonService
             'name' => $data['name'],
             'surname' => $data['surname'],
             'gender' => $data['gender'],
-            'phone' => $data['phone'],
+            'phone' => $data['phone'] ?? null,
             'location_id' => $data['location_id'] ?? null,
             'class_group_id' => $data['class_group_id'] ?? null,
             'type' => $type->value,
@@ -148,6 +148,6 @@ class PersonService
 
     public function loadDetails(Person $person): Person
     {
-        return $person->load(['location.province', 'classGroup', 'creator'])->loadCount('worships');
+        return $person->load(['location', 'classGroup', 'creator'])->loadCount('worships');
     }
 }

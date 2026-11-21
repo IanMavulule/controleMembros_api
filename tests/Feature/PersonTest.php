@@ -65,6 +65,40 @@ test('person registration validates input', function () {
         ->assertJsonValidationErrors(['class_group_id' => 'Turma não encontrada.']);
 });
 
+test('a person can be registered without phone and the phone added later', function () use ($payload) {
+    $first = $this->actingAs($this->worker, 'sanctum')
+        ->postJson(route('people.store'), $payload(['phone' => null]))
+        ->assertCreated()
+        ->assertJsonPath('data.phone', null)
+        ->json('data.id');
+
+    $this->actingAs($this->worker, 'sanctum')
+        ->postJson(route('people.store'), $payload(['phone' => '']))
+        ->assertCreated();
+
+    expect(Person::whereNull('phone')->count())->toBe(2);
+
+    $this->actingAs($this->worker, 'sanctum')
+        ->putJson(route('people.update', $first), ['phone' => '84 555 6677'])
+        ->assertOk()
+        ->assertJsonPath('data.phone', '+258845556677');
+});
+
+test('has_phone lists only people with a phone number', function () {
+    Person::factory()->create(['name' => 'Rita', 'surname' => 'Langa', 'phone' => '+258841234567']);
+    Person::factory()->create(['name' => 'Rita', 'surname' => 'Sem Numero', 'phone' => null]);
+
+    $this->actingAs($this->worker, 'sanctum')
+        ->getJson(route('people.index', ['search' => 'rita', 'has_phone' => 1]))
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.surname', 'Langa');
+
+    $this->actingAs($this->worker, 'sanctum')
+        ->getJson(route('people.index', ['search' => 'rita']))
+        ->assertJsonCount(2, 'data');
+});
+
 test('a person can be registered without a class and the class removed later', function () use ($payload) {
     $personId = $this->actingAs($this->worker, 'sanctum')
         ->postJson(route('people.store'), $payload(['class_group_id' => null]))
@@ -150,7 +184,7 @@ test('people list filters by type, search and location', function () {
         ->assertJsonPath('data.0.name', 'Ana');
 
     $this->actingAs($this->worker, 'sanctum')
-        ->getJson(route('people.index', ['province_id' => $location->province_id]))
+        ->getJson(route('people.index', ['location_id' => $location->id]))
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.name', 'Maria');
 });

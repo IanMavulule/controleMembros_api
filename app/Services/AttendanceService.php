@@ -35,7 +35,7 @@ class AttendanceService
     public function filteredQuery(Worship $worship, array $filters = []): BelongsToMany
     {
         return $worship->people()
-            ->with(['location.province', 'classGroup'])
+            ->with(['location', 'classGroup'])
             ->withCount('worships')
             ->when(
                 filled($filters['search'] ?? null),
@@ -69,7 +69,7 @@ class AttendanceService
      * Regista a presença: reaproveita a pessoa com o mesmo número ou cria-a,
      * associa-a ao culto e promove-a a membro se atingir o número de cultos.
      *
-     * @param  array{phone: string, name?: string|null, surname?: string|null, gender?: string|null, location_id?: int|null, class_group_id?: int|null}  $data
+     * @param  array{person_id?: int|null, phone?: string|null, name?: string|null, surname?: string|null, gender?: string|null, location_id?: int|null, class_group_id?: int|null}  $data
      * @return array{person: Person, person_created: bool, promoted: bool}
      */
     public function register(Worship $worship, array $data, User $registrar): array
@@ -101,12 +101,17 @@ class AttendanceService
      * Procura primeiro pelo número; só cria se não existir. Se outro pedido criar a mesma
      * pessoa em simultâneo, o índice único trava este e reaproveita-se o registo existente.
      *
-     * @param  array{phone: string, name?: string|null, surname?: string|null, gender?: string|null, location_id?: int|null, class_group_id?: int|null}  $data
+     * @param  array{person_id?: int|null, phone?: string|null, name?: string|null, surname?: string|null, gender?: string|null, location_id?: int|null, class_group_id?: int|null}  $data
      * @return array{0: Person, 1: bool}
      */
     private function findOrCreatePerson(array $data, User $registrar): array
     {
-        $existing = Person::where('phone', $data['phone'])->first();
+        $phone = $data['phone'] ?? null;
+        $existing = match (true) {
+            filled($data['person_id'] ?? null) => Person::find($data['person_id']),
+            filled($phone) => Person::where('phone', $phone)->first(),
+            default => null,
+        };
 
         if ($existing) {
             return [$existing, false];
@@ -117,14 +122,14 @@ class AttendanceService
                 'name' => $data['name'],
                 'surname' => $data['surname'],
                 'gender' => $data['gender'],
-                'phone' => $data['phone'],
+                'phone' => $phone,
                 'location_id' => $data['location_id'] ?? null,
                 'class_group_id' => $data['class_group_id'] ?? null,
             ], $registrar);
 
             return [$person, true];
         } catch (UniqueConstraintViolationException) {
-            return [Person::where('phone', $data['phone'])->firstOrFail(), false];
+            return [Person::where('phone', $phone)->firstOrFail(), false];
         }
     }
 

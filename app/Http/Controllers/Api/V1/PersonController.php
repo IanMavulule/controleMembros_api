@@ -22,7 +22,7 @@ class PersonController extends Controller
     public function index(Request $request): JsonResponse
     {
         $people = $this->personService->list(
-            $request->only(['search', 'type', 'gender', 'location_id', 'province_id', 'class_group_id', 'per_page'])
+            $request->only(['search', 'type', 'gender', 'location_id', 'class_group_id', 'has_phone', 'per_page'])
         );
 
         return PersonResource::collection($people)

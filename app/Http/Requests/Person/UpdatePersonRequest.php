@@ -41,7 +41,7 @@ class UpdatePersonRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'surname' => ['sometimes', 'string', 'max:255'],
             'gender' => ['sometimes', Rule::enum(GenderEnum::class)],
-            'phone' => ['sometimes', 'string', 'regex:'.self::PHONE_REGEX, new UniquePersonPhone($this->route('person')->id)],
+            'phone' => ['sometimes', 'nullable', 'string', 'regex:'.self::PHONE_REGEX, new UniquePersonPhone($this->route('person')->id)],
             'location_id' => ['sometimes', 'nullable', 'integer', 'exists:locations,id'],
             'class_group_id' => ['sometimes', 'nullable', 'integer', 'exists:class_groups,id'],
             'type' => [Rule::prohibitedIf(! $this->user()->isAdmin()), 'sometimes', Rule::enum(PersonTypeEnum::class)],

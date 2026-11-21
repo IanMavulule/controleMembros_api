@@ -7,25 +7,16 @@ use Database\Factories\LocationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * O code é único dentro de cada província (ex.: pode haver "Centro" em duas províncias).
+ * Zona / bairro: entidade independente com code único (evita "Matola Rio" e "matola  rio").
  */
-#[Fillable(['province_id', 'name'])]
+#[Fillable(['name'])]
 class Location extends Model
 {
     /** @use HasFactory<LocationFactory> */
     use HasFactory, HasUniqueNameCode;
-
-    /**
-     * @return BelongsTo<Province, $this>
-     */
-    public function province(): BelongsTo
-    {
-        return $this->belongsTo(Province::class);
-    }
 
     /**
      * @return HasMany<Person, $this>

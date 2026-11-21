@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Enums\PersonTypeEnum;
 use App\Exports\Concerns\StyledSheet;
 use App\Models\Person;
 use App\Models\Worship;
@@ -52,8 +51,7 @@ class PeopleExport implements FromCollection, ShouldAutoSize, WithEvents, WithHe
     public function headings(): array
     {
         return [
-            'Nome', 'Apelido', 'Celular', 'Género', 'Tipo', 'Membro desde', 'Turma', 'Local', 'Província',
-            'Presenças', 'Faltam para membro',
+            'Nome', 'Apelido', 'Celular', 'Género', 'Tipo', 'Turma', 'Zona / bairro',
             ...($this->withRegisteredAt ? ['Registado no culto'] : ['Registado em']),
         ];
     }
@@ -64,20 +62,14 @@ class PeopleExport implements FromCollection, ShouldAutoSize, WithEvents, WithHe
      */
     public function map($person): array
     {
-        $attendances = (int) $person->worships_count;
-
         return [
             $person->name,
             $person->surname,
-            $person->phone,
+            $person->phone ?? '',
             $person->gender->label(),
             $person->type->label(),
-            $person->became_member_at?->format('d/m/Y') ?? '',
             $person->classGroup?->name ?? 'Sem turma',
             $person->location?->name ?? '',
-            $person->location?->province?->name ?? '',
-            $attendances,
-            $person->type === PersonTypeEnum::Visitor ? max(0, Person::MEMBERSHIP_THRESHOLD - $attendances) : 0,
             $this->withRegisteredAt
                 ? $person->pivot?->created_at?->format('d/m/Y H:i')
                 : $person->created_at?->format('d/m/Y H:i'),

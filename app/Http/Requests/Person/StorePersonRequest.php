@@ -44,7 +44,7 @@ class StorePersonRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'surname' => ['required', 'string', 'max:255'],
             'gender' => ['required', Rule::enum(GenderEnum::class)],
-            'phone' => ['required', 'string', 'regex:'.self::PHONE_REGEX, new UniquePersonPhone],
+            'phone' => ['nullable', 'string', 'regex:'.self::PHONE_REGEX, new UniquePersonPhone],
             'location_id' => ['nullable', 'integer', 'exists:locations,id'],
             'class_group_id' => ['nullable', 'integer', 'exists:class_groups,id'],
             'type' => [Rule::prohibitedIf(! $this->user()->isAdmin()), 'sometimes', Rule::enum(PersonTypeEnum::class)],

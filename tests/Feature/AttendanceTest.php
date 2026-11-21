@@ -90,9 +90,9 @@ test('a new phone requires name, surname and gender but not class', function () 
         ->postJson(route('worships.attendances.store', $this->worship), ['phone' => '+258849999999'])
         ->assertUnprocessable()
         ->assertJsonValidationErrors([
-            'name' => 'Número não registado: indique o nome para registar a pessoa.',
-            'surname' => 'Número não registado: indique o apelido para registar a pessoa.',
-            'gender' => 'Número não registado: indique o género para registar a pessoa.',
+            'name' => 'Indique o nome para registar a pessoa.',
+            'surname' => 'Indique o apelido para registar a pessoa.',
+            'gender' => 'Indique o género para registar a pessoa.',
         ])
         ->assertJsonMissingValidationErrors('class_group_id');
 
@@ -102,6 +102,35 @@ test('a new phone requires name, surname and gender but not class', function () 
         ->postJson(route('worships.attendances.store', $this->worship), $newPerson(['class_group_id' => null]))
         ->assertCreated()
         ->assertJsonPath('data.class_group', null);
+});
+
+test('without phone every registration creates a new person', function () use ($newPerson) {
+    $otherWorship = Worship::factory()->for($this->myProgram)->create();
+
+    $this->actingAs($this->worker, 'sanctum')
+        ->postJson(route('worships.attendances.store', $this->worship), $newPerson(['phone' => null]))
+        ->assertCreated()
+        ->assertJsonPath('person_created', true)
+        ->assertJsonPath('data.phone', null);
+
+    $this->actingAs($this->worker, 'sanctum')
+        ->postJson(route('worships.attendances.store', $otherWorship), $newPerson(['phone' => '']))
+        ->assertCreated()
+        ->assertJsonPath('person_created', true);
+
+    expect(Person::where('name', 'Maria')->whereNull('phone')->count())->toBe(2);
+});
+
+test('a person chosen from the list is reused by id even without phone', function () {
+    $person = Person::factory()->create(['phone' => null, 'name' => 'Rita', 'surname' => 'Langa']);
+
+    $this->actingAs($this->worker, 'sanctum')
+        ->postJson(route('worships.attendances.store', $this->worship), ['person_id' => $person->id])
+        ->assertCreated()
+        ->assertJsonPath('person_created', false)
+        ->assertJsonPath('data.id', $person->id);
+
+    expect(Person::count())->toBe(1);
 });
 
 test('the phone must follow the +258 format', function () use ($newPerson) {
